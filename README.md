@@ -30,7 +30,7 @@
   Make sure you use "" instead of <> for the include, as we're including a local header and not a system header
 * In main add another assert, but this time to make sure our include works:
         `assert(XYZ == 41);`
-* Try building. It failed, didn't it? That's because we forgot that XYZ is in the namespace "mymathlib." So let's $
+* Try building. It failed, didn't it? That's because we forgot that XYZ is in the namespace "mymathlib." So let's fix that:
         `assert(mymathlib::XYZ == 41);`
 * Now build and debug. Did it crash? Good. Change 41 to 42. Why did I bother making it fail? This is how things
   are normally done when testing. You test the failure case first just to make sure it's failing when you want
