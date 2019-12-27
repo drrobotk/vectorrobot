@@ -155,3 +155,45 @@ main.cpp:13:2: error: static assertion failed
   ^~~~~~~~~~~~~
 ```
 That's right. We're adding vectors at compile-time!
+
+## Task 5
+One fairly obvious thing we haven't yet taken care of is equality. This is problematic with floats and doubles because of imprecision. Generally you decide on an epsilon and then check for equality by subtracting one value from the other and seeing if the absolute difference is within the epsilon. You can certainly go back and modify all of your asserts to do that, and at some point you probably should, but for now I'm trying to keep things relatively simple. With that said, let's actually define equality in our library now. What does it mean for two vectors to be equal (ignoring imprecision and epsilons)? It means the x components are equal, the y components are equal, and the z components are equal, no? OK, then let's write that:
+
+```cpp
+constexpr auto operator==(vector3d const v1, vector3d const v2) -> bool {
+  return v1.x == v2.x && v1.y == v2.y && v1.z == v2.z;
+}
+```
+
+That weird `operator==` is a special syntax required by C++ for certain functions. Just go with it. Hopefully I don't need to explain the constexpr, auto, trailing return type, etc. by now and can focus on the implementation. I'm returning true if all the components are equal and false otherwise. Pretty straightforward. But only having an equality function is rather inconvenient. What if we want to test the opposite and see if two vectors *aren't* equal? Well, we *could* do it like this:
+
+```cpp
+constexpr auto operator!=(vector3d const v1, vector3d const v2) -> bool {
+  return v1.x != v2.x || v1.y != v2.y || v1.z != v2.z;
+}
+```
+
+We compare each component pair separately and return false if any one of them is inequal. The reason we use a logical OR here (`||`) is that we want to short-circuit the evaluation. We don't care if all of them are inequal. In fact, that would be the wrong condition to test for. If *anything* isn't equal, the vectors aren't equal. Period.
+
+We *could* implement `!=` like that and it would be perfectly fine. But I'll let you in on a secret: programmers are lazy. Since `==` is a cheap operation, why not get some more mileage out of it by reusing it in our `!=` implementation like so:
+
+```cpp
+constexpr auto operator!=(vector3d const v1, vector3d const v2) -> bool {
+  return !(v1 == v2);
+}
+```
+
+In other words, if v1 == v2, return false, else return true. Get used to seeing this pattern, because it is everywhere in C++. Not only because it saves time and space, but also because if I now change the implementation of `==`, I don't have to remember to rewrite `!=` as well.
+
+Finally, let's add some tests. We can stick with compile-time tests for this one:
+
+```cpp
+static_assert(ml::X_HAT != ml::X_HAT);
+static_assert(ml::Y_HAT != ml::Y_HAT);
+static_assert(ml::Z_HAT != ml::Z_HAT);
+static_assert(ml::X_HAT == ml::Y_HAT);
+static_assert(ml::X_HAT == ml::Z_HAT);
+static_assert(ml::Y_HAT == ml::Z_HAT);
+```
+
+Fix the expressions until they're correct (and it compiles), and you're done.
