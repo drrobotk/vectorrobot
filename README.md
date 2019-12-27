@@ -8,7 +8,8 @@
 [The vector3d Type](#the-vector3d-type)  
 [Addition and Subtraction](#addition-and-subtraction)  
 [Equality](#equality)
-[Addition and Subtraction Revisited](#addition-and-subtraction-revisited)
+[Addition and Subtraction Revisited](#addition-and-subtraction-revisited)  
+[Products and Such](#products-and-such)  
 
 ## Overview
 
@@ -266,3 +267,29 @@ assert(testvec2 == (ml::X_HAT + ml::Y_HAT));
 assert(testvec2.x == 1.f);
 assert(testvec2.y == 3.f);
 ```
+## Products and Such
+
+Next up are the dot product, cross product, and magnitude (or distance, or length, or norm, or whatever you wish to call it). I've done the function signatures:
+
+```cpp
+constexpr auto dot(vector3d const v1, vector3d const v2) -> float {
+  //return ...something;
+}
+
+constexpr auto cross(vector3d const v1, vector3d const v2) -> vector3d {
+  //return ...something;
+}
+
+inline auto magnitude(vector3d const v) -> float {
+  // return ...something;
+}
+```
+You may have noticed that `magnitude()` (pop! pop!) is `inline` instead of `constexpr`. That's because you'll most likely need to use functions from the standard library that aren't constexpr themselves. Obviously we cannot have a compile-time function that calls other functions at runtime. 
+
+The rest is up to you. Here's a hint for the magnitude: `std::sqrt` for calculating the square root is located in the standard header `<cmath>`. Another hint: square root might be the first time you'll need to use an epsilon for your equality comparison. Here's an example of one I wrote using the testvec2 from the last task:
+
+```cpp
+assert(std::abs(ml::magnitude(testvec2) - std::sqrt(10)) < 0.000001f);
+```
+
+Good luck.
