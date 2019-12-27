@@ -8,6 +8,7 @@
 [The vector3d Type](#the-vector3d-type)  
 [Addition and Subtraction](#addition-and-subtraction)  
 [Equality](#equality)
+[Addition and Subtraction Revisited](#addition-and-subtraction-revisited)
 
 ## Overview
 
@@ -206,3 +207,62 @@ static_assert(ml::Y_HAT == ml::Z_HAT);
 ```
 
 Fix the expressions until they're correct (and it compiles), and you're done.
+
+## Addition and Subtraction Revisited
+
+Remember when I said some people prefer using `+` for addition and `-` for subtraction? Well, now that we've dipped our toes in the waters of operator overloading, we can do that:
+
+```cpp
+constexpr auto operator+(vector3d const v1, vector3d const v2) -> vector3d {
+  return add(v1, v2);
+}
+```
+By now I trust you can implement operator- by yourself (you already wrote a `subtract()` function, right?).
+
+But what if we want to add a second vector to the first and overwrite the value that was in the first? Sort of like
+
+```cpp
+auto x = 5;
+auto y = 10;
+x += y; // now x contains 15
+```
+You're ruining the beautiful immutability of our math library, but OK, OK, I yield. You've discovered operator overloading and now you want to find an excuse to overload all of them. Let's get this out of your system now so you'll get bored doing it:
+
+```cpp
+constexpr auto operator+=(vector3d& v1, vector3d const v2) -> vector3d& {
+  v1.x += v2.x;
+  v1.y += v2.y;
+  v1.z += v2.z;
+  return v1;
+}
+```
+
+or even just:
+
+```cpp
+constexpr auto operator+=(vector3d& v1, vector3d const v2) -> vector3d& {
+  return v1 = add(v1,v2);
+}
+```
+
+Whichever version you prefer, there are two key differences to other functions we've written till now:
+
+* First, we take the first argument by reference (`&`) so that we can modify it. If we don't do this, then whoever calls the function will end up with the same value as before because they passed in a copy.
+* Second, now we have to return a reference as well, because C++ expects this to be possible:
+
+```cpp
+(v1 += v2) += v3;
+```
+If we *don't* return a reference from += then v3 will be added to a copy of v1 += v2 rather than v1 itself. Confused yet? Good. Stop overloading operators willy-nilly.
+
+Add some tests to `main()` for + and += (and - and -= if you wrote them) and we're finished. Here's a sample of some tests you could do for `+=`:
+
+```cpp
+auto testvec2 = ml::X_HAT;
+auto testvec3 = ml::Y_HAT;
+testvec2 += testvec3;
+assert(testvec2 == (ml::X_HAT + ml::Y_HAT));
+(testvec2 += testvec3) += testvec3;
+assert(testvec2.x == 1.f);
+assert(testvec2.y == 3.f);
+```
