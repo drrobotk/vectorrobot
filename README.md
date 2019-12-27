@@ -90,7 +90,7 @@ Third (I lied; there's a third thing), add two additional constants Y_HAT and Z_
 We're done with this task. You know what to do at the end of a task by now and I won't continue mentioning it.
 
 ## Task 4
-Let's get down to brass tacks. We came here to arithmetize, so we'll start with addition. Open up vector3d.h and a few lines below your `vector3d` struct add the following function:
+Let's get down to business. We came here to arithmetize, so we'll start with addition. Open up vector3d.h and a few lines below your `vector3d` struct add the following function:
 ```cpp
        constexpr auto add(vector3d const v1, vector3d const v2) -> vector3d {
                 return {v1.x + v2.x, v1.y + v2.y, v1.z + v2.z};
