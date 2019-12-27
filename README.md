@@ -140,3 +140,18 @@ assert(testvec.y == 75.f); // so should this
 assert(testvec.z == 80.f); // and this
 ```
 This test doesn't suitably cover the z component because we didn't add two vectors that even use z. I leave that as an exercise to the reader, as well another exercise to write a new function called `subtract` that subtracts the second vector from the first and returns a third vector containing the result. Don't forget to make your arguments `const` unless you intend to change them. And: Don't forget to write tests!
+
+Bonus: if you want to see a cool side effect of defining our functions `constexpr`, try adding this somewhere in `main()`:
+
+```cpp
+static_assert(ml::add(ml::X_HAT, ml::X_HAT).x == 3.f);
+```
+When you try building it you should see an error similar to
+
+```
+main.cpp: In function ‘int main()’:
+main.cpp:13:2: error: static assertion failed
+  static_assert(ml::add(ml::X_HAT, ml::X_HAT).x == 3.f);
+  ^~~~~~~~~~~~~
+```
+That's right. We're adding vectors at compile-time!
