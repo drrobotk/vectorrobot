@@ -2,24 +2,21 @@
 
 ## Table of Contents  
 [Overview](#overview)  
-[Task 0 - Forking/Setup](#task0)  
-[Task 1 - Creating a Project](#task1)  
-[Task 2 - Creating a Library Header](#task2)  
-[Task 3 - The vector3d Type](#task3)  
-[Task 4 - Addition/Subtraction](#task4)
-[Task 5 - Equality](#task5)
+[Setup](#setup)  
+[Creating a Project](#creating-a-project)  
+[Creating a Header](#creating-a-header)  
+[The vector3d Type](#the-vector3d-type)  
+[Addition and Subtraction](#addition-and-subtraction)  
+[Equality](#equality)
 
-<a name="overview"/>
 ## Overview
 
 We're going to write a very simple library for vector arithmetic. I'm also going to assume minimal C++ knowledge. Below I tend to use Visual Studio terminology, but none of the code in here (from me) is nonportable.
 
-<a name="task0"/>
-## Task 0 - Forking/Setup
+## Setup
 Fork this repository and clone *your version* (not mine) somewhere on your machine. If you're using Visual Studio, follow these instructions for the GitHub extension: https://github.com/github/VisualStudio/blob/master/docs/using/cloning-a-repository-to-visual-studio.md If you're using the command-ine, just do a regular git clone. If you're using SourceTree or SmartGit or something else, please consult the documentation about how to clone.
 
-<a name="task1"/>
-## Task 1 - Creating a Project
+## Creating a Project
 Create a new console executable project. Give it the name you want your math library to have. Make sure the directories and files it generates are located inside of your forked repository so that I can follow your progress.
 
 At the top of the generated .cpp file containing `main()`, do
@@ -38,8 +35,7 @@ Build and Debug the app. What happens? Does it succeed (Exit code 0)? Copy the o
 
 Change the `assert(false)` to `assert(true)` and run it again. What changes?
 
-<a name="task2"/>
-## Task 2 - Creating a Library Header
+## Creating a Header
 Add a new header file to the project and call it vector3d.h
 At the top of the header write 
 ```cpp
@@ -80,8 +76,7 @@ Now build and debug. Did it crash? Good. Change 41 to 42. Why did I bother makin
 
 When everything is ready, the output should be nothing but Exit code 0. That's fine. Copy it to a task2/output.txt like you did for Task 1 and push.
 
-<a name="task3"/>
-## Task 3 - The vector3d Type
+## The vector3d Type
 Let's take a moment to decide how to proceed. The original goal was to have a simple vector arithmetic library. So probably a good next step would be defining the vector. There are lots of ways to do this, from the semantically stupid (C-arrays, std::array, std::vector) to the more correct but arguably inconvenient (std::tuple) to the typical (a struct) to the Bad Old Days typical (a class with a diamond inheritance pattern cribbed from a Gang of Four book and 8 vector factories). Let's stick with typical.
 
 Open up vector3d.h and above our dummy XYZ constant let's define a struct called vector3d. We'll give it three components (x, y, and z--or i, j, and k if you prefer). We'll also mark it final for now since it seems unlikely we'll have to derive from it:
@@ -103,8 +98,7 @@ Third (I lied; there's a third thing), add two additional constants Y_HAT and Z_
 
 We're done with this task. You know what to do at the end of a task by now and I won't continue mentioning it.
 
-<a name="task4"/>
-## Task 4 - Addition/Subtraction
+## Addition and Subtraction
 Let's get down to business. We came here to arithmetize, so we'll start with addition. Open up vector3d.h and a few lines below your `vector3d` struct add the following function:
 ```cpp
        constexpr auto add(vector3d const v1, vector3d const v2) -> vector3d {
@@ -171,8 +165,7 @@ main.cpp:13:2: error: static assertion failed
 ```
 That's right. We're adding vectors at compile-time!
 
-<a name="task5"/>
-## Task 5 - Equality
+## Equality
 One fairly obvious thing we haven't yet taken care of is equality. This is problematic with floats and doubles because of imprecision. Generally you decide on an epsilon and then check for equality by subtracting one value from the other and seeing if the absolute difference is within the epsilon. You can certainly go back and modify all of your asserts to do that, and at some point you probably should, but for now I'm trying to keep things relatively simple. With that said, let's actually define equality in our library now. What does it mean for two vectors to be equal (ignoring imprecision and epsilons)? It means the x components are equal, the y components are equal, and the z components are equal, no? OK, then let's write that:
 
 ```cpp
