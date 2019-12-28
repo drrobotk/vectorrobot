@@ -37,6 +37,8 @@ Build and Debug the app. What happens? Does it succeed (Exit code 0)? Copy the o
 
 Change the `assert(false)` to `assert(true)` and run it again. What changes?
 
+Output dir: task1/
+
 ## Creating a Header
 Add a new header file to the project and call it vector3d.h
 At the top of the header write 
@@ -78,6 +80,8 @@ Now build and debug. Did it crash? Good. Change 41 to 42. Why did I bother makin
 
 When everything is ready, the output should be nothing but Exit code 0. That's fine. Copy it to a task2/output.txt like you did for Task 1 and push.
 
+Output dir: task2/
+
 ## The vector3d Type
 Let's take a moment to decide how to proceed. The original goal was to have a simple vector arithmetic library. So probably a good next step would be defining the vector. There are lots of ways to do this, from the semantically stupid (C-arrays, std::array, std::vector) to the more correct but arguably inconvenient (std::tuple) to the typical (a struct) to the Bad Old Days typical (a class with a diamond inheritance pattern cribbed from a Gang of Four book and 8 vector factories). Let's stick with typical.
 
@@ -99,6 +103,8 @@ Second, your project probably no longer builds because `XYZ` is gone. That's fin
 Third (I lied; there's a third thing), add two additional constants Y_HAT and Z_HAT, add 2 more asserts to verify it fails when it should fail, and then fix the tests so that they pass.
 
 We're done with this task. You know what to do at the end of a task by now and I won't continue mentioning it.
+
+Output dir: task3/
 
 ## Addition and Subtraction
 Let's get down to business. We came here to arithmetize, so we'll start with addition. Open up vector3d.h and a few lines below your `vector3d` struct add the following function:
@@ -167,6 +173,8 @@ main.cpp:13:2: error: static assertion failed
 ```
 That's right. We're adding vectors at compile-time!
 
+Output dir: task4/
+
 ## Equality
 One fairly obvious thing we haven't yet taken care of is equality. This is problematic with floats and doubles because of imprecision. Generally you decide on an epsilon and then check for equality by subtracting one value from the other and seeing if the absolute difference is within the epsilon. You can certainly go back and modify all of your asserts to do that, and at some point you probably should, but for now I'm trying to keep things relatively simple. With that said, let's actually define equality in our library now. What does it mean for two vectors to be equal (ignoring imprecision and epsilons)? It means the x components are equal, the y components are equal, and the z components are equal, no? OK, then let's write that:
 
@@ -208,6 +216,8 @@ static_assert(ml::Y_HAT == ml::Z_HAT);
 ```
 
 Fix the expressions until they're correct (and it compiles), and you're done.
+
+Output dir: task5/
 
 ## Addition and Subtraction Revisited
 
@@ -267,6 +277,9 @@ assert(testvec2 == (ml::X_HAT + ml::Y_HAT));
 assert(testvec2.x == 1.f);
 assert(testvec2.y == 3.f);
 ```
+
+Output dir: task6/
+
 ## Products and Such
 
 Next up are the dot product, cross product, and magnitude (or distance, or length, or norm, or whatever you wish to call it). I've done the function signatures:
@@ -293,3 +306,5 @@ assert(std::abs(ml::magnitude(testvec2) - std::sqrt(10)) < 0.000001f);
 ```
 
 Good luck.
+
+Output dir: task8/
