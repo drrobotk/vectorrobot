@@ -11,7 +11,8 @@
 [Addition and Subtraction Revisited](#addition-and-subtraction-revisited)  
 [Products and Such](#products-and-such)  
 [Output](#output)  
-[Commands](#commands)
+[Commands](#commands)  
+[A Command Processor](#a-command-processor)  
 
 ## Overview
 
@@ -435,3 +436,120 @@ Now we're getting somewhere. We haven't addressed the return types of these oper
 Don't add it to any of the source code, but for the end of this task, I want you to finish the if-else code above for all of the commands we support so far and save it in a text file in the output directory. Don't forget the error cases (and ask yourself what happens in your pseudocode if `next_word` isn't recognized at all).
 
 Output dir: task10/
+
+## A Command Processor
+
+We won't actually work with microphones and robots, but it's a nice analogy. We *will* be working with an input stream and we'll need to write a command parser/processor to figure out what commands to run and then run them.
+
+I guess now is as good a time as any to make this project a little larger and add a second .cpp file. In Visual Studio you do this by right-clicking on the project and choosing Add -> New File. Follow the wizard and create `processor.cpp` and `processor.h`. If you're working in Xcode the process is similar. If you're doing all of this on the command-line with g++ or clang, and you don't already have a CMakeLists.txt or Makefile and don't know how to compile multiple .cpp files at the same time, then just use a simple shell script with something like:
+
+```sh
+echo "g++ -std=c++17 main.cpp processor.cpp -o vectorrobot" > build.sh && chmod +x build.sh;
+```
+
+and build with `./build.sh`. 
+
+*Side Note: before the complexity of your projects grows too much, I'd encourage you to either use an IDE like VS/Xcode/KDevelop or if you want to look cool and hip use CMake with VSCode. People don't use those because they're morons who need a GUI to hold their hand. They use them because real-world projects get very large very fast and nobody wants to have a million system and 3rd party library datatypes and function signatures memorized or have to manually enter gdb commands to step through 80 function templates from `std::map`.*
+
+When that's done, open up `processor.h` (not .cpp!) and add this standard boilerplate stuff:
+
+```cpp
+#pragma once
+#include <iosfwd>
+
+namespace mymathlib::processor {
+
+}
+```
+
+Wait, what's iosfwd, you're probably wondering? Well, we haven't dealt with *how* we're going to get those command strings, but let's make this flexible and support both `std::cin` and `std::ifstream`. Both of those derive from a common base called `std::istream`, which is what we want to use. However, we don't want to force everyone `#include`ing our header to have to load the entire IO stuff from the standard library with it, so we use a different header called `iosfwd` that just has forward declarations of the types, but not their actual definitions.
+
+Now, as a next step, switch to `processor.cpp` and add this:
+
+```cpp
+#include "processor.h"
+#include <istream>
+
+namespace mymathlib::processor {
+}
+```
+
+We don't have anything yet, but that's OK. Go ahead and build, to make sure we didn't make any mistakes.
+
+If we look back at the last task, we had pseudofunctions like `expect_vector_or_fail(input)` that took some mysterious input argument and returned a vector (or failed, if a vector wasn't encountered).
+
+Now we need to think about how to actually write this pseudofunction in C++. What should the return type be? `vector3d` seems logical. But what about the error case where the next thing in `input` isn't a vector (or worse: `input` is EOF or in a bad state)? We *could* throw an exception, but I think it might be more fun to handle this a different way using a type you probably haven't encountered yet (no, sorry, it's not `std::expected`): `std::optional`.
+
+`std::optional<T>` has one of two states: *either* it contains a value of type T which we can access with `.value()` *or* it contains the special value `std::nullopt`. Just a quick example of how to use it before we go on:
+
+```cpp
+  std::optional<int> x;
+  assert(!x.has_value()); // x == std::nullopt
+  x = 42;
+  assert(x.has_value()); // x == 42
+  std::optional<int> y;
+  assert(!y.has_value()); // y == std::nullopt
+  assert(x.value() + y.value_or(17) == 59); // 42 + 17
+```
+
+I hope that was clear because I don't intend to write a `std::optional` tutorial here. Please look it up in the documentation for more information if you need it.
+
+Back to our commands, *one* (but not the only) way we could handle the parsing of a vector is then like this:
+
+```cpp
+#include <iosfwd>
+#include <optional>
+
+namespace mymathlib {
+
+// here we forward-declare vector3d so we don't need to include "vector3d.h"
+struct vector3d;
+
+namespace processor {
+
+using maybe_vector3d = std::optional<vector3d>;
+
+auto expect_vector_or_fail(std::istream& input) -> maybe_vector3d;
+
+...continued
+```
+
+And in our command-handling code we could do:
+
+```cpp
+if (next_word == "magnitude") {
+	if (auto const argument = expect_vector_or_fail(input); argument.has_value()) {
+		expect_end_of_command_or_fail(input); // magnitude does not accept multiple arguments
+	} else {
+		// note: this error SUCKS! we're not even showing a line # and
+		// the input might contain millions of magnitude commands
+		report_error("expected a vector after magnitude"); 
+		return false;
+	}
+}
+```
+
+If you learning C++ from an old(er) resource, you're probably not familiar with the `if (assignment; condition)` syntax above either. This is syntactic sugar that helps you write more compact if-else branches. It is not functionally any different from
+
+```cpp
+auto const argument = expect_vector_or_fail(input);
+if (argument.has_value())
+```
+
+But now `argument` is outside of the scope of the `if` and might cause side effects. If you like this way of writing it, by all means keep doing so.
+
+We can't forget to add this to our `processor.cpp` file:
+
+```cpp
+#include "vector3d.h" // needed because we only forward-declared the type in processor.h
+
+namespace mymathlib::processor {
+
+auto expect_vector_or_fail(std::istream& input) -> maybe_vector3d {
+	return {};
+}
+```
+
+This is very similar to the function declaration in `processor.h`, except now we need to write a function *definition* in processor.cpp. If we don't, and we try to call `expect_vector_or_fail` somewhere else, it will result in a linker error. The `return {};` that we added just returns a `std::nullopt` for now. We'll get to its implementation next.
+
+Output dir: there is no expected output for this task. Just verify everything builds and push the changes to your sources
