@@ -1,0 +1,1 @@
+Assertion failed: false, file C:\Users\FUSION\source\repos\ConsoleApplication2\ConsoleApplication2\ConsoleApplication2.cpp, line 9
