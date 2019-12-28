@@ -24,4 +24,20 @@ namespace mymathlib {
     constexpr auto operator!=(vector3d const v1, vector3d const v2) -> bool {
         return !(v1 == v2);
     }
+
+    constexpr auto operator+(vector3d const v1, vector3d const v2) -> vector3d {
+        return add(v1, v2);
+    }
+
+    constexpr auto operator-(vector3d const v1, vector3d const v2) -> vector3d {
+        return subtract(v1, v2);
+    }
+
+    constexpr auto operator+=(vector3d& v1, vector3d const v2) -> vector3d& {
+        return v1 = add(v1, v2);
+    }
+
+    constexpr auto operator-=(vector3d& v1, vector3d const v2) -> vector3d& {
+        return v1 = subtract(v1, v2);
+    }
 }
