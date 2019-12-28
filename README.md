@@ -10,7 +10,8 @@
 [Equality](#equality)
 [Addition and Subtraction Revisited](#addition-and-subtraction-revisited)  
 [Products and Such](#products-and-such)  
-[Output](#output)
+[Output](#output)  
+[Commands](#commands)
 
 ## Overview
 
@@ -379,3 +380,58 @@ testvec2 = [1.000000, 3.000000, 0.000000]
 Next we're going to work on operations and commands, and then the output is going to get *a lot* more interesting.
 
 Output dir: task9/
+
+## Commands
+
+So far we've defined the following functions (ignoring the operators):
+
+```
+magnitude(vector3d) -> float
+dot(vector3d, vector3d) -> float
+add(vector3d, vector3d) -> vector3d
+subtract(vector3d, vector3d) -> vector3d
+cross(vector3d, vector3d) -> vector3d
+```
+
+We have three functions that take two vector arguments and output a third vector, one function that takes two vector arguments and outputs a scalar float value, and one function that takes one vector argument and outputs a scalar float value.
+
+I want you to imagine we have some sort of automaton that carries out these operations for us. A very simple robot with a microphone that we can bark commands at and it gives us a result. What would the language that this robot understands look like?
+
+```
+Valid commands: magnitude, dot, add, subtract, cross
+Valid arguments: command-specific
+Output from automaton: command-specific
+```
+
+Now imagine we're working on that piece of the puzzle between the microphone and the part of the robot that performs the operations. We have a speech recognizer and it tells us, "the first word is 'magnitude.'" What's our next step? What should we expect after that? Obviously, the next thing we should expect to hear is a vector (let's pretend for now that we agreed upon a way of 'speaking vectors').
+
+In other words, we started off expecting any sort of command from a list of valid ones, encountered a command we recognized, and entered a new state where we narrow down what kind of things we accept from the microphone. Can someone say, "magnitude pi", for example? No, pi is not a vector. Can they say "magnitude subtract"? No. At least not according to what we decided upon above.
+
+If we wanted to describe this transition between states in pseudocode we could write something like:
+
+```cpp
+	auto const next_word = get_next_word(input);
+	if (next_word == "magnitude") {
+		auto const argument = expect_vector_or_fail(input); // anything but vector is an error
+		expect_end_of_command_or_fail(input); // magnitude does not accept multiple arguments
+	}
+```
+
+How would it look for, say, cross?
+
+```cpp
+	auto const next_word = get_next_word(input);
+	if (next_word == "magnitude") { 
+		...unimportant
+	} else if (next_word == "cross") {
+		auto const argument1 = expect_vector_or_fail(input);
+		auto const argument2 = expect_vector_or_fail(input);
+		expect_end_of_command_or_fail(input);
+	}
+```
+
+Now we're getting somewhere. We haven't addressed the return types of these operations yet (and we haven't written any of these functions yet, so nothing will compile anyway), but this robot's speech processor is slowly starting to take shape.
+
+Don't add it to any of the source code, but for the end of this task, I want you to finish the if-else code above for all of the commands we support so far and save it in a text file in the output directory.
+
+Output dir: task10/
