@@ -538,6 +538,14 @@ if (argument.has_value())
 
 But now `argument` is outside of the scope of the `if` and might cause side effects. If you like this way of writing it, by all means keep doing so.
 
+Additionally, you could just write:
+
+```cpp
+if (auto const argument = expect_vector_or_fail(input)) {
+```
+
+because in this specific instance we're dealing with a type (`std::optional`) that can be converted to bool. But that won't always be the case.
+
 We can't forget to add this to our `processor.cpp` file:
 
 ```cpp
