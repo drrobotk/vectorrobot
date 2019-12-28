@@ -432,6 +432,6 @@ How would it look for, say, cross?
 
 Now we're getting somewhere. We haven't addressed the return types of these operations yet (and we haven't written any of these functions yet, so nothing will compile anyway), but this robot's speech processor is slowly starting to take shape.
 
-Don't add it to any of the source code, but for the end of this task, I want you to finish the if-else code above for all of the commands we support so far and save it in a text file in the output directory.
+Don't add it to any of the source code, but for the end of this task, I want you to finish the if-else code above for all of the commands we support so far and save it in a text file in the output directory. Don't forget the error cases (and ask yourself what happens in your pseudocode if `next_word` isn't recognized at all).
 
 Output dir: task10/
