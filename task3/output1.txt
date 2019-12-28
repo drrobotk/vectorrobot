@@ -1,0 +1,1 @@
+Assertion failed: mymathlib::X_HAT.x == 0.f, file C:\Users\FUSION\source\repos\vectorrobot\ConsoleApplication2\ConsoleApplication2\ConsoleApplication2.cpp, line 11
