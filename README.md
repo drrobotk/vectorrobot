@@ -10,6 +10,7 @@
 [Equality](#equality)
 [Addition and Subtraction Revisited](#addition-and-subtraction-revisited)  
 [Products and Such](#products-and-such)  
+[Output](#output)
 
 ## Overview
 
@@ -308,3 +309,73 @@ assert(std::abs(ml::magnitude(testvec2) - std::sqrt(10)) < 0.000001f);
 Good luck.
 
 Output dir: task8/
+
+## Output
+The reward of visual feedback is a great motivator, so let's do some work with output. Since it's ubiquitous nowadays, we'll write our output in JSON. Right now we only have 3D vectors, but we'll extend that in a moment. So how should we represent our vector in JSON? One way would be 1:1 with our data structure:
+
+```json
+{ 
+    "x": 1.23456,
+    "y": 7.89102,
+    "z": 3.14159
+}
+```
+
+If you prefer that sort of output, by all means implement it that way. But I find it a bit verbose for this task, so let's output it as an array:
+
+```json
+[1.23456, 7.89102, 3.14159]
+```
+
+To keep things clean and not pollute our vector3d.h with a bunch of json stuff, let's keep all our serialization (reading/writing from persistent storage) separate. Create a new header file called tojson.h and add:
+
+```cpp
+#pragma once
+#include <string>
+#include "vector3d.h"
+
+namespace mymathlib::serialize {
+
+        // serialize a vector3d as a json array of its components
+        inline auto to_json(vector3d const& v) -> std::string {
+                return "[" + std::to_string(v.x) + ", "
+                        + std::to_string(v.y) + ", "
+                        + std::to_string(v.z) + "]";
+        }
+}
+```
+
+As before with vector3d.h we start with `#pragma once` to avoid multiple inclusion. After that we include the standard string header as well as the header where our vector3d struct resides. Further down we put everything in a new namespace *inside* of our existing mymathlib namespace. In older code you might see
+
+```cpp
+namespace mymathlib {
+    namespace serialize {
+        ...code goes here
+    }
+}
+```
+
+But who has time to track down all of those closing curly-braces and make sure indentation is correct? I sure don't. If you prefer this style, go for it. There are definitely times (for example when doing a `using` or when forward declaring) when it makes sense, so it's worthwhile learning both.
+
+I've `inline`'d the function to_json because we're calling `std::to_string` to convert our `float` components into `std::string` and this isn't a compile-time operation. I've also `inline`'d it because we haven't gotten around to adding more .cpp files to a project yet.
+
+The implementation is pretty straightforward. We want our output, a JSON array, to resemble `<left-bracket><float><comma><float><comma><float><right-bracket>`. The whitespace in our output is unimportant and only there for readability.
+
+Now that that's out of the way let's test it. Go back to your `main()` function and create a `vector3d` we can run it on. I'm just reusing `testvec2` from before:
+
+```cpp
+// you may have heard that calling std::endl blindly is considered bad form. that may be true,
+// but we won't concern ourselves with it now. that's really a forest-for-the-trees problem at
+// this early point
+std::cout << "testvec2 = " << ml::serialize::to_json(testvec2) << std::endl; 
+```
+
+Build and run it, and with any luck you should see something like:
+
+```
+testvec2 = [1.000000, 3.000000, 0.000000]
+```
+
+Next we're going to work on operations and commands, and then the output is going to get *a lot* more interesting.
+
+Output dir: task9/
