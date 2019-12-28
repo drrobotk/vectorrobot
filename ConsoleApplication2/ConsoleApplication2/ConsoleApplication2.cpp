@@ -8,7 +8,9 @@
 int main()
 {
     assert(true);
-    assert(mymathlib::XYZ == 41);
+    assert(mymathlib::X_HAT.x == 1.f);
+    assert(mymathlib::Y_HAT.y == 1.f);
+    assert(mymathlib::Z_HAT.z == 1.f);
 }
 
 // Run program: Ctrl + F5 or Debug > Start Without Debugging menu
