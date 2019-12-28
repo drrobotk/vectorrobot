@@ -1,0 +1,1 @@
+C:\Users\FUSION\source\repos\vectorrobot\ConsoleApplication2\Debug\ConsoleApplication2.exe (process 13232) exited with code 0.
