@@ -63,7 +63,19 @@ namespace mymathlib {
         return scale(v, a, a, a);
     }
 
+    auto rotatex(vector3d v, float alpha)-> vector3d {
+        return { v.x, v.y * cos(alpha) - v.z * sin(alpha), v.y * sin(alpha) + v.z * cos(alpha) };
+    }
+
+    auto rotatey(vector3d v, float alpha)-> vector3d {
+        return { v.x * cos(alpha) + v.z * sin(alpha), v.y, -v.x * sin(alpha) + v.z * cos(alpha) };
+    }
+
+    auto rotatez(vector3d v, float alpha)-> vector3d {
+        return { v.x * cos(alpha) - v.y * sin(alpha), v.x * sin(alpha) + v.y * cos(alpha), v.z};
+    }
+
     auto rotate(vector3d v, float alpha, float beta, float gamma)-> vector3d {
-        return { v.x * cos(beta) * cos(gamma), v.y * cos(alpha) * cos(gamma), v.z * cos(alpha) * cos(beta) };
+        return rotatez(rotatey(rotatex(v, alpha), beta), gamma);
     }
 }

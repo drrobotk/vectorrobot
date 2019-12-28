@@ -59,6 +59,8 @@ int main()
     (testvec5 += testvec6) += testvec6;
     assert(testvec5.x == 1.f);
     assert(testvec5.y == 3.f);
+    assert(testvec5.z == 0.f);
+
 
         // Testing +-
     auto testvec9 = ml::X_HAT;
@@ -68,6 +70,7 @@ int main()
     (testvec9 -= testvec10) -= testvec10;
     assert(testvec9.x == 1.f);
     assert(testvec9.y == -3.f);
+    assert(testvec9.z == 0.f);
    
-  
+    
 }
