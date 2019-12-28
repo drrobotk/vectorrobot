@@ -10,6 +10,9 @@
 [Equality](#equality)
 [Addition and Subtraction Revisited](#addition-and-subtraction-revisited)  
 [Products and Such](#products-and-such)  
+[Output](#output)  
+[Commands](#commands)  
+[A Command Processor](#a-command-processor)  
 
 ## Overview
 
@@ -36,6 +39,8 @@ Make sure the project configuration is set to Debug (in Release builds `assert()
 Build and Debug the app. What happens? Does it succeed (Exit code 0)? Copy the output from running it into a subdirectory called task1/output.txt and then push the changes to your fork.
 
 Change the `assert(false)` to `assert(true)` and run it again. What changes?
+
+Output dir: task1/
 
 ## Creating a Header
 Add a new header file to the project and call it vector3d.h
@@ -78,6 +83,8 @@ Now build and debug. Did it crash? Good. Change 41 to 42. Why did I bother makin
 
 When everything is ready, the output should be nothing but Exit code 0. That's fine. Copy it to a task2/output.txt like you did for Task 1 and push.
 
+Output dir: task2/
+
 ## The vector3d Type
 Let's take a moment to decide how to proceed. The original goal was to have a simple vector arithmetic library. So probably a good next step would be defining the vector. There are lots of ways to do this, from the semantically stupid (C-arrays, std::array, std::vector) to the more correct but arguably inconvenient (std::tuple) to the typical (a struct) to the Bad Old Days typical (a class with a diamond inheritance pattern cribbed from a Gang of Four book and 8 vector factories). Let's stick with typical.
 
@@ -99,6 +106,8 @@ Second, your project probably no longer builds because `XYZ` is gone. That's fin
 Third (I lied; there's a third thing), add two additional constants Y_HAT and Z_HAT, add 2 more asserts to verify it fails when it should fail, and then fix the tests so that they pass.
 
 We're done with this task. You know what to do at the end of a task by now and I won't continue mentioning it.
+
+Output dir: task3/
 
 ## Addition and Subtraction
 Let's get down to business. We came here to arithmetize, so we'll start with addition. Open up vector3d.h and a few lines below your `vector3d` struct add the following function:
@@ -167,6 +176,8 @@ main.cpp:13:2: error: static assertion failed
 ```
 That's right. We're adding vectors at compile-time!
 
+Output dir: task4/
+
 ## Equality
 One fairly obvious thing we haven't yet taken care of is equality. This is problematic with floats and doubles because of imprecision. Generally you decide on an epsilon and then check for equality by subtracting one value from the other and seeing if the absolute difference is within the epsilon. You can certainly go back and modify all of your asserts to do that, and at some point you probably should, but for now I'm trying to keep things relatively simple. With that said, let's actually define equality in our library now. What does it mean for two vectors to be equal (ignoring imprecision and epsilons)? It means the x components are equal, the y components are equal, and the z components are equal, no? OK, then let's write that:
 
@@ -208,6 +219,8 @@ static_assert(ml::Y_HAT == ml::Z_HAT);
 ```
 
 Fix the expressions until they're correct (and it compiles), and you're done.
+
+Output dir: task5/
 
 ## Addition and Subtraction Revisited
 
@@ -267,6 +280,9 @@ assert(testvec2 == (ml::X_HAT + ml::Y_HAT));
 assert(testvec2.x == 1.f);
 assert(testvec2.y == 3.f);
 ```
+
+Output dir: task6/
+
 ## Products and Such
 
 Next up are the dot product, cross product, and magnitude (or distance, or length, or norm, or whatever you wish to call it). I've done the function signatures:
@@ -293,3 +309,255 @@ assert(std::abs(ml::magnitude(testvec2) - std::sqrt(10)) < 0.000001f);
 ```
 
 Good luck.
+
+Output dir: task8/
+
+## Output
+The reward of visual feedback is a great motivator, so let's do some work with output. Since it's ubiquitous nowadays, we'll write our output in JSON. Right now we only have 3D vectors, but we'll extend that in a moment. So how should we represent our vector in JSON? One way would be 1:1 with our data structure:
+
+```json
+{ 
+    "x": 1.23456,
+    "y": 7.89102,
+    "z": 3.14159
+}
+```
+
+If you prefer that sort of output, by all means implement it that way. But I find it a bit verbose for this task, so let's output it as an array:
+
+```json
+[1.23456, 7.89102, 3.14159]
+```
+
+To keep things clean and not pollute our vector3d.h with a bunch of json stuff, let's keep all our serialization (reading/writing from persistent storage) separate. Create a new header file called tojson.h and add:
+
+```cpp
+#pragma once
+#include <string>
+#include "vector3d.h"
+
+namespace mymathlib::serialize {
+
+        // serialize a vector3d as a json array of its components
+        inline auto to_json(vector3d const& v) -> std::string {
+                return "[" + std::to_string(v.x) + ", "
+                        + std::to_string(v.y) + ", "
+                        + std::to_string(v.z) + "]";
+        }
+}
+```
+
+As before with vector3d.h we start with `#pragma once` to avoid multiple inclusion. After that we include the standard string header as well as the header where our vector3d struct resides. Further down we put everything in a new namespace *inside* of our existing mymathlib namespace. In older code you might see
+
+```cpp
+namespace mymathlib {
+    namespace serialize {
+        ...code goes here
+    }
+}
+```
+
+But who has time to track down all of those closing curly-braces and make sure indentation is correct? I sure don't. If you prefer this style, go for it. There are definitely times (for example when doing a `using` or when forward declaring) when it makes sense, so it's worthwhile learning both.
+
+I've `inline`'d the function to_json because we're calling `std::to_string` to convert our `float` components into `std::string` and this isn't a compile-time operation. I've also `inline`'d it because we haven't gotten around to adding more .cpp files to a project yet.
+
+The implementation is pretty straightforward. We want our output, a JSON array, to resemble `<left-bracket><float><comma><float><comma><float><right-bracket>`. The whitespace in our output is unimportant and only there for readability.
+
+Now that that's out of the way let's test it. Go back to your `main()` function and create a `vector3d` we can run it on. I'm just reusing `testvec2` from before:
+
+```cpp
+// you may have heard that calling std::endl blindly is considered bad form. that may be true,
+// but we won't concern ourselves with it now. that's really a forest-for-the-trees problem at
+// this early point
+std::cout << "testvec2 = " << ml::serialize::to_json(testvec2) << std::endl; 
+```
+
+Build and run it, and with any luck you should see something like:
+
+```
+testvec2 = [1.000000, 3.000000, 0.000000]
+```
+
+Next we're going to work on operations and commands, and then the output is going to get *a lot* more interesting.
+
+Output dir: task9/
+
+## Commands
+
+So far we've defined the following functions (ignoring the operators):
+
+```
+magnitude(vector3d) -> float
+dot(vector3d, vector3d) -> float
+add(vector3d, vector3d) -> vector3d
+subtract(vector3d, vector3d) -> vector3d
+cross(vector3d, vector3d) -> vector3d
+```
+
+We have three functions that take two vector arguments and output a third vector, one function that takes two vector arguments and outputs a scalar float value, and one function that takes one vector argument and outputs a scalar float value.
+
+I want you to imagine we have some sort of automaton that carries out these operations for us. A very simple robot with a microphone that we can bark commands at and it gives us a result. What would the language that this robot understands look like?
+
+```
+Valid commands: magnitude, dot, add, subtract, cross
+Valid arguments: command-specific
+Output from automaton: command-specific
+```
+
+Now imagine we're working on that piece of the puzzle between the microphone and the part of the robot that performs the operations. We have a speech recognizer and it tells us, "the first word is 'magnitude.'" What's our next step? What should we expect after that? Obviously, the next thing we should expect to hear is a vector (let's pretend for now that we agreed upon a way of 'speaking vectors').
+
+In other words, we started off expecting any sort of command from a list of valid ones, encountered a command we recognized, and entered a new state where we narrow down what kind of things we accept from the microphone. Can someone say, "magnitude pi", for example? No, pi is not a vector. Can they say "magnitude subtract"? No. At least not according to what we decided upon above.
+
+If we wanted to describe this transition between states in pseudocode we could write something like:
+
+```cpp
+	auto const next_word = get_next_word(input);
+	if (next_word == "magnitude") {
+		auto const argument = expect_vector_or_fail(input); // anything but vector is an error
+		expect_end_of_command_or_fail(input); // magnitude does not accept multiple arguments
+	}
+```
+
+How would it look for, say, cross?
+
+```cpp
+	auto const next_word = get_next_word(input);
+	if (next_word == "magnitude") { 
+		...unimportant
+	} else if (next_word == "cross") {
+		auto const argument1 = expect_vector_or_fail(input);
+		auto const argument2 = expect_vector_or_fail(input);
+		expect_end_of_command_or_fail(input);
+	}
+```
+
+Now we're getting somewhere. We haven't addressed the return types of these operations yet (and we haven't written any of these functions yet, so nothing will compile anyway), but this robot's speech processor is slowly starting to take shape.
+
+Don't add it to any of the source code, but for the end of this task, I want you to finish the if-else code above for all of the commands we support so far and save it in a text file in the output directory. Don't forget the error cases (and ask yourself what happens in your pseudocode if `next_word` isn't recognized at all).
+
+Output dir: task10/
+
+## A Command Processor
+
+We won't actually work with microphones and robots, but it's a nice analogy. We *will* be working with an input stream and we'll need to write a command parser/processor to figure out what commands to run and then run them.
+
+I guess now is as good a time as any to make this project a little larger and add a second .cpp file. In Visual Studio you do this by right-clicking on the project and choosing Add -> New File. Follow the wizard and create `processor.cpp` and `processor.h`. If you're working in Xcode the process is similar. If you're doing all of this on the command-line with g++ or clang, and you don't already have a CMakeLists.txt or Makefile and don't know how to compile multiple .cpp files at the same time, then just use a simple shell script with something like:
+
+```sh
+echo "g++ -std=c++17 main.cpp processor.cpp -o vectorrobot" > build.sh && chmod +x build.sh;
+```
+
+and build with `./build.sh`. 
+
+*Side Note: before the complexity of your projects grows too much, I'd encourage you to either use an IDE like VS/Xcode/KDevelop or if you want to look cool and hip use CMake with VSCode. People don't use those because they're morons who need a GUI to hold their hand. They use them because real-world projects get very large very fast and nobody wants to have a million system and 3rd party library datatypes and function signatures memorized or have to manually enter gdb commands to step through 80 function templates from `std::map`.*
+
+When that's done, open up `processor.h` (not .cpp!) and add this standard boilerplate stuff:
+
+```cpp
+#pragma once
+#include <iosfwd>
+
+namespace mymathlib::processor {
+
+}
+```
+
+Wait, what's iosfwd, you're probably wondering? Well, we haven't dealt with *how* we're going to get those command strings, but let's make this flexible and support both `std::cin` and `std::ifstream`. Both of those derive from a common base called `std::istream`, which is what we want to use. However, we don't want to force everyone `#include`ing our header to have to load the entire IO stuff from the standard library with it, so we use a different header called `iosfwd` that just has forward declarations of the types, but not their actual definitions.
+
+Now, as a next step, switch to `processor.cpp` and add this:
+
+```cpp
+#include "processor.h"
+#include <istream>
+
+namespace mymathlib::processor {
+}
+```
+
+We don't have anything yet, but that's OK. Go ahead and build, to make sure we didn't make any mistakes.
+
+If we look back at the last task, we had pseudofunctions like `expect_vector_or_fail(input)` that took some mysterious input argument and returned a vector (or failed, if a vector wasn't encountered).
+
+Now we need to think about how to actually write this pseudofunction in C++. What should the return type be? `vector3d` seems logical. But what about the error case where the next thing in `input` isn't a vector (or worse: `input` is EOF or in a bad state)? We *could* throw an exception, but I think it might be more fun to handle this a different way using a type you probably haven't encountered yet (no, sorry, it's not `std::expected`): `std::optional`.
+
+`std::optional<T>` has one of two states: *either* it contains a value of type T which we can access with `.value()` *or* it contains the special value `std::nullopt`. Just a quick example of how to use it before we go on:
+
+```cpp
+  std::optional<int> x;
+  assert(!x.has_value()); // x == std::nullopt
+  x = 42;
+  assert(x.has_value()); // x == 42
+  std::optional<int> y;
+  assert(!y.has_value()); // y == std::nullopt
+  assert(x.value() + y.value_or(17) == 59); // 42 + 17
+```
+
+I hope that was clear because I don't intend to write a `std::optional` tutorial here. Please look it up in the documentation for more information if you need it.
+
+Back to our commands, *one* (but not the only) way we could handle the parsing of a vector is then like this:
+
+```cpp
+#include <iosfwd>
+#include <optional>
+
+namespace mymathlib {
+
+// here we forward-declare vector3d so we don't need to include "vector3d.h"
+struct vector3d;
+
+namespace processor {
+
+using maybe_vector3d = std::optional<vector3d>;
+
+auto expect_vector_or_fail(std::istream& input) -> maybe_vector3d;
+
+...continued
+```
+
+And in our command-handling code we could do:
+
+```cpp
+if (next_word == "magnitude") {
+	if (auto const argument = expect_vector_or_fail(input); argument.has_value()) {
+		expect_end_of_command_or_fail(input); // magnitude does not accept multiple arguments
+	} else {
+		// note: this error SUCKS! we're not even showing a line # and
+		// the input might contain millions of magnitude commands
+		report_error("expected a vector after magnitude"); 
+		return false;
+	}
+}
+```
+
+If you learning C++ from an old(er) resource, you're probably not familiar with the `if (assignment; condition)` syntax above either. This is syntactic sugar that helps you write more compact if-else branches. It is not functionally any different from
+
+```cpp
+auto const argument = expect_vector_or_fail(input);
+if (argument.has_value())
+```
+
+But now `argument` is outside of the scope of the `if` and might cause side effects. If you like this way of writing it, by all means keep doing so.
+
+Additionally, you could just write:
+
+```cpp
+if (auto const argument = expect_vector_or_fail(input)) {
+```
+
+because in this specific instance we're dealing with a type (`std::optional`) that can be converted to bool. But that won't always be the case.
+
+We can't forget to add this to our `processor.cpp` file:
+
+```cpp
+#include "vector3d.h" // needed because we only forward-declared the type in processor.h
+
+namespace mymathlib::processor {
+
+auto expect_vector_or_fail(std::istream& input) -> maybe_vector3d {
+	return {};
+}
+```
+
+This is very similar to the function declaration in `processor.h`, except now we need to write a function *definition* in processor.cpp. If we don't, and we try to call `expect_vector_or_fail` somewhere else, it will result in a linker error. The `return {};` that we added just returns a `std::nullopt` for now. We'll get to its implementation next.
+
+Output dir: there is no expected output for this task. Just verify everything builds and push the changes to your sources
