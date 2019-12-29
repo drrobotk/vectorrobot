@@ -8,7 +8,6 @@
 namespace ml = mymathlib;
 using namespace std;
 
-
 int main()
 {
     // Task 1
@@ -71,6 +70,8 @@ int main()
     assert(testvec9.x == 1.f);
     assert(testvec9.y == -3.f);
     assert(testvec9.z == 0.f);
-   
+
+    cout << angled(ml::X_HAT, ml::Y_HAT);
+    
     
 }
